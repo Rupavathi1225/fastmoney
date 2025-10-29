@@ -22,6 +22,7 @@ export interface WebResult {
   logoUrl: string;
   isSponsored: boolean;
   webResultPage: string; // wr=1, wr=2, etc.
+  lid: number; // Link ID for masked URLs
 }
 
 const LANDING_KEY = 'fastmoney_landing';
@@ -77,7 +78,8 @@ export const getWebResults = (): WebResult[] => {
       description: 'hey all how are you',
       logoUrl: '',
       isSponsored: true,
-      webResultPage: 'wr=1'
+      webResultPage: 'wr=1',
+      lid: 1
     },
     {
       id: '2',
@@ -87,7 +89,8 @@ export const getWebResults = (): WebResult[] => {
       description: 'heyy',
       logoUrl: '',
       isSponsored: false,
-      webResultPage: 'wr=1'
+      webResultPage: 'wr=1',
+      lid: 2
     },
     {
       id: '3',
@@ -97,7 +100,8 @@ export const getWebResults = (): WebResult[] => {
       description: 'search engine',
       logoUrl: '',
       isSponsored: true,
-      webResultPage: 'wr=2'
+      webResultPage: 'wr=2',
+      lid: 3
     }
   ];
 };

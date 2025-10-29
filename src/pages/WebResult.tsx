@@ -54,7 +54,7 @@ const WebResult = () => {
                         rel="noopener noreferrer"
                         className="text-sm text-primary hover:underline"
                       >
-                        {result.link}
+                        topuniversityterritian/lid={result.lid}
                       </a>
                       <div className="mt-4">
                         <Button 
@@ -102,7 +102,7 @@ const WebResult = () => {
                         rel="noopener noreferrer"
                         className="text-sm text-primary hover:underline"
                       >
-                        {result.link}
+                        topuniversityterritian/lid={result.lid}
                       </a>
                     </div>
                   </div>

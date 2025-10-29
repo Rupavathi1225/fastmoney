@@ -28,9 +28,15 @@ const WebResultsTab = () => {
       return;
     }
 
+    // Auto-generate lid (find highest lid and increment)
+    const maxLid = results.length > 0 
+      ? Math.max(...results.map(r => r.lid || 0))
+      : 0;
+
     const result: WebResult = {
       id: Date.now().toString(),
-      ...newResult
+      ...newResult,
+      lid: maxLid + 1
     };
 
     const updatedResults = [...results, result];
@@ -47,7 +53,7 @@ const WebResultsTab = () => {
       webResultPage: "wr=1"
     });
     
-    toast.success("Web result added successfully!");
+    toast.success(`Web result added successfully! Link ID: lid=${result.lid}`);
   };
 
   const handleDeleteResult = (id: string) => {
@@ -212,7 +218,11 @@ const WebResultsTab = () => {
                       <span className="text-primary">{result.webResultPage}</span>
                     </div>
                     <div className="md:col-span-2">
-                      <span className="text-muted-foreground">Link: </span>
+                      <span className="text-muted-foreground">Masked Link: </span>
+                      <span className="text-foreground">topuniversityterritian/lid={result.lid}</span>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-muted-foreground">Actual Link: </span>
                       <a href={result.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                         {result.link}
                       </a>
