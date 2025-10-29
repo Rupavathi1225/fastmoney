@@ -30,7 +30,7 @@ const Admin = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/landing')}
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
