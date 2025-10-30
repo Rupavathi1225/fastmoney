@@ -25,9 +25,28 @@ export interface WebResult {
   lid: number; // Link ID for masked URLs
 }
 
+export interface ClickAnalytics {
+  lid: number;
+  resultName: string;
+  resultTitle: string;
+  clicks: number;
+  lastClickedAt: string;
+}
+
+export interface SessionAnalytics {
+  id: string;
+  startTime: string;
+  endTime: string;
+  duration: number; // in seconds
+  page: string;
+}
+
 const LANDING_KEY = 'fastmoney_landing';
 const SEARCH_BUTTONS_KEY = 'fastmoney_search_buttons';
 const WEB_RESULTS_KEY = 'fastmoney_web_results';
+const CLICK_ANALYTICS_KEY = 'fastmoney_click_analytics';
+const SESSION_ANALYTICS_KEY = 'fastmoney_session_analytics';
+const CURRENT_SESSION_KEY = 'fastmoney_current_session';
 
 // Landing Content
 export const getLandingContent = (): LandingContent => {
@@ -108,4 +127,71 @@ export const getWebResults = (): WebResult[] => {
 
 export const saveWebResults = (results: WebResult[]): void => {
   localStorage.setItem(WEB_RESULTS_KEY, JSON.stringify(results));
+};
+
+// Click Analytics Functions
+export const getClickAnalytics = (): ClickAnalytics[] => {
+  const data = localStorage.getItem(CLICK_ANALYTICS_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+export const trackLinkClick = (lid: number, resultName: string, resultTitle: string) => {
+  const analytics = getClickAnalytics();
+  const existing = analytics.find(a => a.lid === lid);
+  
+  if (existing) {
+    existing.clicks += 1;
+    existing.lastClickedAt = new Date().toISOString();
+  } else {
+    analytics.push({
+      lid,
+      resultName,
+      resultTitle,
+      clicks: 1,
+      lastClickedAt: new Date().toISOString()
+    });
+  }
+  
+  localStorage.setItem(CLICK_ANALYTICS_KEY, JSON.stringify(analytics));
+};
+
+export const clearClickAnalytics = () => {
+  localStorage.removeItem(CLICK_ANALYTICS_KEY);
+};
+
+// Session Analytics Functions
+export const getSessionAnalytics = (): SessionAnalytics[] => {
+  const data = localStorage.getItem(SESSION_ANALYTICS_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+export const startSession = (page: string) => {
+  const session: SessionAnalytics = {
+    id: Date.now().toString(),
+    startTime: new Date().toISOString(),
+    endTime: '',
+    duration: 0,
+    page
+  };
+  localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(session));
+  return session;
+};
+
+export const endSession = () => {
+  const currentSession = localStorage.getItem(CURRENT_SESSION_KEY);
+  if (!currentSession) return;
+  
+  const session: SessionAnalytics = JSON.parse(currentSession);
+  session.endTime = new Date().toISOString();
+  session.duration = Math.floor((new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / 1000);
+  
+  const allSessions = getSessionAnalytics();
+  allSessions.push(session);
+  localStorage.setItem(SESSION_ANALYTICS_KEY, JSON.stringify(allSessions));
+  localStorage.removeItem(CURRENT_SESSION_KEY);
+};
+
+export const clearSessionAnalytics = () => {
+  localStorage.removeItem(SESSION_ANALYTICS_KEY);
+  localStorage.removeItem(CURRENT_SESSION_KEY);
 };

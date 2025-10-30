@@ -1,11 +1,21 @@
 import { useNavigate } from "react-router-dom";
-import { getLandingContent, getSearchButtons } from "@/lib/storage";
+import { getLandingContent, getSearchButtons, startSession, endSession } from "@/lib/storage";
 import { ChevronRight, Search } from "lucide-react";
+import { useEffect } from "react";
 
 const Landing = () => {
   const navigate = useNavigate();
   const landingContent = getLandingContent();
   const searchButtons = getSearchButtons().sort((a, b) => a.serialNumber - b.serialNumber);
+
+  // Session tracking
+  useEffect(() => {
+    startSession('landing');
+    
+    return () => {
+      endSession();
+    };
+  }, []);
 
   const handleButtonClick = (button: any) => {
     if (button.link) {

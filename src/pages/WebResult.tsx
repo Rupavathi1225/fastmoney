@@ -1,7 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { getWebResults, getLandingContent } from "@/lib/storage";
+import { getWebResults, getLandingContent, trackLinkClick, startSession, endSession } from "@/lib/storage";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 const WebResult = () => {
   const location = useLocation();
@@ -14,6 +15,20 @@ const WebResult = () => {
   const allResults = getWebResults();
   const sponsoredResults = allResults.filter(r => r.isSponsored && r.webResultPage === wrParam);
   const webResults = allResults.filter(r => !r.isSponsored && r.webResultPage === wrParam);
+
+  // Session tracking
+  useEffect(() => {
+    startSession(wrParam);
+    
+    return () => {
+      endSession();
+    };
+  }, [wrParam]);
+
+  const handleLinkClick = (lid: number, name: string, title: string, link: string) => {
+    trackLinkClick(lid, name, title);
+    window.open(link, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,17 +63,15 @@ const WebResult = () => {
                       <div className="text-xs text-muted-foreground mb-1">Sponsored</div>
                       <h3 className="text-xl font-semibold text-foreground mb-1">{result.title}</h3>
                       <p className="text-sm text-muted-foreground mb-3">{result.description}</p>
-                      <a 
-                        href={result.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                      <button 
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
                         className="text-sm text-primary hover:underline"
                       >
                         topuniversityterritian/lid={result.lid}
-                      </a>
+                      </button>
                       <div className="mt-4">
                         <Button 
-                          onClick={() => window.open(result.link, '_blank')}
+                          onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
                           className="bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
                           <ExternalLink className="w-4 h-4 mr-2" />
@@ -87,23 +100,19 @@ const WebResult = () => {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-muted-foreground mb-1">{result.name}</div>
-                      <a 
-                        href={result.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xl font-medium text-primary hover:underline block mb-1"
+                      <button 
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
+                        className="text-xl font-medium text-primary hover:underline block mb-1 text-left"
                       >
                         {result.title}
-                      </a>
+                      </button>
                       <p className="text-sm text-muted-foreground mb-2">{result.description}</p>
-                      <a 
-                        href={result.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                      <button 
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
                         className="text-sm text-primary hover:underline"
                       >
                         topuniversityterritian/lid={result.lid}
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>
