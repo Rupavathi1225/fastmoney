@@ -1,12 +1,14 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { getWebResults, getLandingContent, trackLinkClick, startSession, endSession } from "@/lib/storage";
+import { getWebResults, getLandingContent } from "@/lib/storage";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import { useAnalyticsTracking } from "@/hooks/useAnalyticsTracking";
 
 const WebResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { trackLinkClick, startSession, endSession } = useAnalyticsTracking();
   const landingContent = getLandingContent();
   
   // Extract wr parameter from URL

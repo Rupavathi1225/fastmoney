@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      click_analytics: {
+        Row: {
+          click_count: number
+          created_at: string
+          id: string
+          last_clicked_at: string
+          link_id: number
+          result_name: string
+          result_title: string
+          session_id: string
+        }
+        Insert: {
+          click_count?: number
+          created_at?: string
+          id?: string
+          last_clicked_at?: string
+          link_id: number
+          result_name: string
+          result_title: string
+          session_id: string
+        }
+        Update: {
+          click_count?: number
+          created_at?: string
+          id?: string
+          last_clicked_at?: string
+          link_id?: number
+          result_name?: string
+          result_title?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
+      session_analytics: {
+        Row: {
+          created_at: string
+          duration: number | null
+          end_time: string | null
+          id: string
+          page: string
+          session_id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          duration?: number | null
+          end_time?: string | null
+          id?: string
+          page: string
+          session_id: string
+          start_time?: string
+        }
+        Update: {
+          created_at?: string
+          duration?: number | null
+          end_time?: string | null
+          id?: string
+          page?: string
+          session_id?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
