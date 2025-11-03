@@ -75,7 +75,12 @@ const WebResult = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-muted-foreground mb-1">Sponsored</div>
-                      <h3 className="text-xl font-semibold text-foreground mb-1">{result.title}</h3>
+                      <button 
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
+                        className="text-xl font-semibold text-foreground hover:text-primary hover:underline block mb-1 text-left transition-colors"
+                      >
+                        {result.title}
+                      </button>
                       <p className="text-sm text-muted-foreground mb-3">{result.description}</p>
                       <button 
                         onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
