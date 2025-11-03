@@ -27,9 +27,17 @@ const WebResult = () => {
     };
   }, [wrParam]);
 
+  const ensureProtocol = (url: string) => {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
   const handleLinkClick = (lid: number, name: string, title: string, link: string) => {
     trackLinkClick(lid, name, title);
-    window.open(link, '_blank');
+    const fullUrl = ensureProtocol(link);
+    window.open(fullUrl, '_blank');
   };
 
   return (
