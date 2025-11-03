@@ -56,11 +56,15 @@ const WebResult = () => {
               {sponsoredResults.map((result) => (
                 <div key={result.id} className="bg-card/30 rounded-lg p-6">
                   <div className="flex items-start gap-4">
-                    {result.logoUrl && (
-                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {result.logoUrl ? (
                         <img src={result.logoUrl} alt={result.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
+                      ) : (
+                        <span className="text-primary-foreground font-semibold text-lg">
+                          {result.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-muted-foreground mb-1">Sponsored</div>
                       <h3 className="text-xl font-semibold text-foreground mb-1">{result.title}</h3>
@@ -95,11 +99,15 @@ const WebResult = () => {
               {webResults.map((result) => (
                 <div key={result.id} className="space-y-2">
                   <div className="flex items-start gap-3">
-                    {result.logoUrl && (
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden mt-1">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden mt-1">
+                      {result.logoUrl ? (
                         <img src={result.logoUrl} alt={result.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
+                      ) : (
+                        <span className="text-primary-foreground font-semibold text-sm">
+                          {result.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-muted-foreground mb-1">{result.name}</div>
                       <button 
