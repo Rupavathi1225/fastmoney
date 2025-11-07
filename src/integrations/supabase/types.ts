@@ -19,60 +19,81 @@ export type Database = {
           click_count: number
           created_at: string
           id: string
+          is_blog_click: boolean | null
           last_clicked_at: string
           link_id: number
           result_name: string
           result_title: string
+          search_term: string | null
           session_id: string
         }
         Insert: {
           click_count?: number
           created_at?: string
           id?: string
+          is_blog_click?: boolean | null
           last_clicked_at?: string
           link_id: number
           result_name: string
           result_title: string
+          search_term?: string | null
           session_id: string
         }
         Update: {
           click_count?: number
           created_at?: string
           id?: string
+          is_blog_click?: boolean | null
           last_clicked_at?: string
           link_id?: number
           result_name?: string
           result_title?: string
+          search_term?: string | null
           session_id?: string
         }
         Relationships: []
       }
       session_analytics: {
         Row: {
+          country: string | null
           created_at: string
+          device: string | null
           duration: number | null
           end_time: string | null
           id: string
+          ip_address: string | null
           page: string
+          page_views: number | null
           session_id: string
+          source: string | null
           start_time: string
         }
         Insert: {
+          country?: string | null
           created_at?: string
+          device?: string | null
           duration?: number | null
           end_time?: string | null
           id?: string
+          ip_address?: string | null
           page: string
+          page_views?: number | null
           session_id: string
+          source?: string | null
           start_time?: string
         }
         Update: {
+          country?: string | null
           created_at?: string
+          device?: string | null
           duration?: number | null
           end_time?: string | null
           id?: string
+          ip_address?: string | null
           page?: string
+          page_views?: number | null
           session_id?: string
+          source?: string | null
           start_time?: string
         }
         Relationships: []
