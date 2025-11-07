@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getWebResults, saveWebResults, type WebResult } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,32 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit2 } from "lucide-react";
+import { Plus, Trash2, Edit2, Globe, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+const COUNTRIES = [
+  { code: "US", name: "United States" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "CA", name: "Canada" },
+  { code: "AU", name: "Australia" },
+  { code: "IN", name: "India" },
+  { code: "DE", name: "Germany" },
+  { code: "FR", name: "France" },
+  { code: "ES", name: "Spain" },
+  { code: "IT", name: "Italy" },
+  { code: "BR", name: "Brazil" },
+  { code: "MX", name: "Mexico" },
+  { code: "JP", name: "Japan" },
+  { code: "CN", name: "China" },
+  { code: "KR", name: "South Korea" },
+  { code: "RU", name: "Russia" },
+  { code: "ZA", name: "South Africa" },
+  { code: "NG", name: "Nigeria" },
+  { code: "EG", name: "Egypt" },
+  { code: "AE", name: "United Arab Emirates" },
+  { code: "SA", name: "Saudi Arabia" },
+];
 
 const WebResultsTab = () => {
   const [results, setResults] = useState<WebResult[]>(getWebResults());
@@ -244,6 +269,119 @@ const WebResultsTab = () => {
 
 const EditResultForm = ({ result, onSave, onCancel }: any) => {
   const [editData, setEditData] = useState(result);
+  const [countryLinks, setCountryLinks] = useState<any[]>([]);
+  const [worldwideLink, setWorldwideLink] = useState("");
+  const [showCountryDialog, setShowCountryDialog] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [countryLinkUrl, setCountryLinkUrl] = useState("");
+
+  useEffect(() => {
+    fetchLinks();
+  }, [result.id]);
+
+  const fetchLinks = async () => {
+    try {
+      const { data: countryData } = await supabase
+        .from('country_links' as any)
+        .select('*')
+        .eq('web_result_id', result.id);
+      
+      const { data: worldwideData } = await supabase
+        .from('worldwide_links' as any)
+        .select('*')
+        .eq('web_result_id', result.id)
+        .maybeSingle();
+
+      setCountryLinks(countryData || []);
+      setWorldwideLink((worldwideData as any)?.link || "");
+    } catch (error) {
+      console.error("Failed to fetch links:", error);
+    }
+  };
+
+  const handleAddCountryLink = async () => {
+    if (!selectedCountry || !countryLinkUrl) {
+      toast.error("Please select a country and enter a link");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('country_links' as any)
+      .insert({
+        web_result_id: result.id,
+        country_code: selectedCountry,
+        link: countryLinkUrl
+      } as any);
+
+    if (error) {
+      toast.error("Failed to add country link");
+      console.error(error);
+      return;
+    }
+
+    toast.success("Country link added successfully!");
+    setSelectedCountry("");
+    setCountryLinkUrl("");
+    setShowCountryDialog(false);
+    fetchLinks();
+  };
+
+  const handleDeleteCountryLink = async (linkId: string) => {
+    const { error } = await supabase
+      .from('country_links' as any)
+      .delete()
+      .eq('id', linkId);
+
+    if (error) {
+      toast.error("Failed to delete country link");
+      console.error(error);
+      return;
+    }
+
+    toast.success("Country link deleted!");
+    fetchLinks();
+  };
+
+  const handleSaveWorldwideLink = async () => {
+    try {
+      const { data: existing } = await supabase
+        .from('worldwide_links' as any)
+        .select('*')
+        .eq('web_result_id', result.id)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('worldwide_links' as any)
+          .update({ link: worldwideLink } as any)
+          .eq('id', (existing as any).id);
+
+        if (error) {
+          toast.error("Failed to update worldwide link");
+          console.error(error);
+          return;
+        }
+      } else {
+        const { error } = await supabase
+          .from('worldwide_links' as any)
+          .insert({
+            web_result_id: result.id,
+            link: worldwideLink
+          } as any);
+
+        if (error) {
+          toast.error("Failed to add worldwide link");
+          console.error(error);
+          return;
+        }
+      }
+
+      toast.success("Worldwide link saved!");
+    } catch (error) {
+      console.error("Failed to save worldwide link:", error);
+      toast.error("Failed to save worldwide link");
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -257,7 +395,7 @@ const EditResultForm = ({ result, onSave, onCancel }: any) => {
           />
         </div>
         <div>
-          <Label className="text-foreground">Link</Label>
+          <Label className="text-foreground">Original Link</Label>
           <Input
             value={editData.link}
             onChange={(e) => setEditData({ ...editData, link: e.target.value })}
@@ -321,6 +459,102 @@ const EditResultForm = ({ result, onSave, onCancel }: any) => {
           </div>
         </div>
       </div>
+
+      {/* Country-Based Links Section */}
+      <div className="border border-border rounded-lg p-4 space-y-4">
+        <h4 className="font-semibold text-foreground flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          Country-Based Links
+        </h4>
+        
+        <Dialog open={showCountryDialog} onOpenChange={setShowCountryDialog}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Country Link
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Country-Specific Link</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Country</Label>
+                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map(country => (
+                      <SelectItem key={country.code} value={country.code}>
+                        {country.name} ({country.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Link URL</Label>
+                <Input
+                  value={countryLinkUrl}
+                  onChange={(e) => setCountryLinkUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  className="mt-2"
+                />
+              </div>
+              <Button onClick={handleAddCountryLink} className="w-full">
+                Add Link
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <div className="space-y-2">
+          {countryLinks.map((link) => (
+            <div key={link.id} className="flex items-center justify-between p-2 bg-muted/20 rounded">
+              <div>
+                <span className="font-medium">{COUNTRIES.find(c => c.code === link.country_code)?.name}</span>
+                <span className="text-muted-foreground text-sm ml-2">({link.country_code})</span>
+                <p className="text-sm text-muted-foreground truncate">{link.link}</p>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleDeleteCountryLink(link.id)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+          {countryLinks.length === 0 && (
+            <p className="text-sm text-muted-foreground">No country-specific links added yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Worldwide Fallback Link */}
+      <div className="border border-border rounded-lg p-4 space-y-4">
+        <h4 className="font-semibold text-foreground flex items-center gap-2">
+          <Globe className="w-4 h-4" />
+          Worldwide Fallback Link
+        </h4>
+        <p className="text-sm text-muted-foreground">
+          This link will be used for countries without specific links
+        </p>
+        <div className="flex gap-2">
+          <Input
+            value={worldwideLink}
+            onChange={(e) => setWorldwideLink(e.target.value)}
+            placeholder="https://worldwide-link.com"
+            className="bg-input border-border text-foreground"
+          />
+          <Button onClick={handleSaveWorldwideLink}>
+            Save
+          </Button>
+        </div>
+      </div>
+
       <div className="flex gap-2">
         <Button 
           onClick={() => onSave(editData)}

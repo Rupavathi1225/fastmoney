@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useAnalyticsTracking } from "@/hooks/useAnalyticsTracking";
+import { supabase } from "@/integrations/supabase/client";
 
 const WebResult = () => {
   const location = useLocation();
@@ -34,9 +35,47 @@ const WebResult = () => {
     return url;
   };
 
-  const handleLinkClick = (lid: number, name: string, title: string, link: string) => {
+  const handleLinkClick = async (lid: number, name: string, title: string, originalLink: string, webResultId: string) => {
+    // Get user's country
+    let userCountry = "WW";
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      userCountry = data.country_code || "WW";
+    } catch (error) {
+      console.error("Failed to get country:", error);
+    }
+
+    // Try to get country-specific link
+    let finalLink = originalLink;
+    try {
+      const { data: countryLink } = await supabase
+        .from('country_links' as any)
+        .select('link')
+        .eq('web_result_id', webResultId)
+        .eq('country_code', userCountry)
+        .maybeSingle();
+
+      if (countryLink) {
+        finalLink = (countryLink as any).link;
+      } else {
+        // Try worldwide fallback
+        const { data: worldwideLink } = await supabase
+          .from('worldwide_links' as any)
+          .select('link')
+          .eq('web_result_id', webResultId)
+          .maybeSingle();
+
+        if (worldwideLink) {
+          finalLink = (worldwideLink as any).link;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch country-specific link:", error);
+    }
+
     trackLinkClick(lid, name, title);
-    const fullUrl = ensureProtocol(link);
+    const fullUrl = ensureProtocol(finalLink);
     window.open(fullUrl, '_blank');
   };
 
@@ -76,21 +115,21 @@ const WebResult = () => {
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-muted-foreground mb-1">Sponsored</div>
                       <button 
-                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link, result.id)}
                         className="text-xl font-semibold text-foreground hover:text-primary hover:underline block mb-1 text-left transition-colors"
                       >
                         {result.title}
                       </button>
                       <p className="text-sm text-muted-foreground mb-3">{result.description}</p>
                       <button 
-                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link, result.id)}
                         className="text-sm text-primary hover:underline"
                       >
                         topuniversityterritian/lid={result.lid}
                       </button>
                       <div className="mt-4">
                         <Button 
-                          onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
+                          onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link, result.id)}
                           className="bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
                           <ExternalLink className="w-4 h-4 mr-2" />
@@ -124,14 +163,14 @@ const WebResult = () => {
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-muted-foreground mb-1">{result.name}</div>
                       <button 
-                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link, result.id)}
                         className="text-xl font-medium text-primary hover:underline block mb-1 text-left"
                       >
                         {result.title}
                       </button>
                       <p className="text-sm text-muted-foreground mb-2">{result.description}</p>
                       <button 
-                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link)}
+                        onClick={() => handleLinkClick(result.lid, result.name, result.title, result.link, result.id)}
                         className="text-sm text-primary hover:underline"
                       >
                         topuniversityterritian/lid={result.lid}

@@ -60,11 +60,12 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
   };
 
   const getTotalClicks = (clicks: ClickDetail[]) => {
-    return clicks.filter(c => !c.is_blog_click).reduce((sum, c) => sum + c.click_count, 0);
+    return clicks.reduce((sum, click) => sum + click.click_count, 0);
   };
 
   const getUniqueClicks = (clicks: ClickDetail[]) => {
-    return clicks.filter(c => !c.is_blog_click).length;
+    const uniqueLinks = new Set(clicks.map(click => click.link_id));
+    return uniqueLinks.size;
   };
 
   return (
@@ -78,7 +79,8 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
             <th className="text-left py-3 px-3 text-sm font-semibold text-foreground">Source</th>
             <th className="text-left py-3 px-3 text-sm font-semibold text-foreground">Device</th>
             <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Page Views</th>
-            <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Clicks</th>
+            <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Total Clicks</th>
+            <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Unique Clicks</th>
             <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Related Searches</th>
             <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Blog Clicks</th>
             <th className="text-left py-3 px-3 text-sm font-semibold text-foreground">Last Active</th>
@@ -118,8 +120,15 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
                   <td className="py-3 px-3 text-center text-sm font-semibold text-foreground">
                     {session.page_views || 1}
                   </td>
-                  <td className="py-3 px-3 text-center text-sm font-semibold text-foreground">
-                    {totalClicks}
+                  <td className="py-3 px-3 text-center">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary/20 text-primary">
+                      {totalClicks}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-center">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                      {uniqueClicks}
+                    </span>
                   </td>
                   <td className="py-3 px-3 text-center">
                     {relatedSearches.length > 0 ? (
@@ -164,7 +173,7 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
                 
                 {isExpanded && (relatedSearches.length > 0 || blogClicks.length > 0) && (
                   <tr className="bg-accent/5">
-                    <td colSpan={10} className="py-4 px-6">
+                    <td colSpan={11} className="py-4 px-6">
                       <div className="grid grid-cols-2 gap-6">
                         {relatedSearches.length > 0 && (
                           <div>
