@@ -51,12 +51,25 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
     });
   };
 
-  const getRelatedSearches = (clicks: ClickDetail[]) => {
-    return clicks.filter(c => c.search_term && !c.is_blog_click);
-  };
-
-  const getBlogClicks = (clicks: ClickDetail[]) => {
-    return clicks.filter(c => c.is_blog_click);
+  const getRelatedCategories = (clicks: ClickDetail[]) => {
+    // Group clicks by result_name (category)
+    const categoryMap = new Map<string, { total: number; uniqueLinks: Set<number> }>();
+    
+    clicks.forEach(click => {
+      const category = click.result_name;
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, { total: 0, uniqueLinks: new Set() });
+      }
+      const data = categoryMap.get(category)!;
+      data.total += click.click_count;
+      data.uniqueLinks.add(click.link_id);
+    });
+    
+    return Array.from(categoryMap.entries()).map(([name, data]) => ({
+      name,
+      totalClicks: data.total,
+      uniqueClicks: data.uniqueLinks.size
+    }));
   };
 
   const getTotalClicks = (clicks: ClickDetail[]) => {
@@ -81,16 +94,14 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
             <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Page Views</th>
             <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Total Clicks</th>
             <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Unique Clicks</th>
-            <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Related Searches</th>
-            <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Blog Clicks</th>
+            <th className="text-center py-3 px-3 text-sm font-semibold text-foreground">Related Categories</th>
             <th className="text-left py-3 px-3 text-sm font-semibold text-foreground">Last Active</th>
           </tr>
         </thead>
         <tbody>
           {data.map((session) => {
             const isExpanded = expandedSessions.has(session.session_id);
-            const relatedSearches = getRelatedSearches(session.clicks);
-            const blogClicks = getBlogClicks(session.clicks);
+            const relatedCategories = getRelatedCategories(session.clicks);
             const totalClicks = getTotalClicks(session.clicks);
             const uniqueClicks = getUniqueClicks(session.clicks);
 
@@ -131,28 +142,10 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
                     </span>
                   </td>
                   <td className="py-3 px-3 text-center">
-                    {relatedSearches.length > 0 ? (
+                    {relatedCategories.length > 0 ? (
                       <div className="flex flex-col items-center gap-1">
                         <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-500/20 text-green-700 dark:text-green-400">
-                          Total: {relatedSearches.reduce((sum, c) => sum + c.click_count, 0)}
-                        </span>
-                        <button
-                          onClick={() => toggleSession(session.session_id)}
-                          className="text-xs text-primary hover:underline flex items-center gap-1"
-                        >
-                          {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                          View breakdown
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    {blogClicks.length > 0 ? (
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-500/20 text-orange-700 dark:text-orange-400">
-                          Total: {blogClicks.reduce((sum, c) => sum + c.click_count, 0)}
+                          Total: {relatedCategories.reduce((sum, cat) => sum + cat.totalClicks, 0)}
                         </span>
                         <button
                           onClick={() => toggleSession(session.session_id)}
@@ -171,51 +164,26 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
                   </td>
                 </tr>
                 
-                {isExpanded && (relatedSearches.length > 0 || blogClicks.length > 0) && (
+                {isExpanded && relatedCategories.length > 0 && (
                   <tr className="bg-accent/5">
-                    <td colSpan={11} className="py-4 px-6">
-                      <div className="grid grid-cols-2 gap-6">
-                        {relatedSearches.length > 0 && (
-                          <div>
-                            <h4 className="text-sm font-semibold text-foreground mb-3">Related Searches</h4>
-                            <div className="space-y-2">
-                              {relatedSearches.map((click, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-2 bg-card rounded border border-border">
-                                  <span className="text-sm text-foreground">{click.search_term || click.result_title}</span>
-                                  <div className="flex gap-3 text-xs">
-                                    <span className="px-2 py-1 bg-primary/10 text-primary rounded">
-                                      Total: {click.click_count}
-                                    </span>
-                                    <span className="px-2 py-1 bg-secondary/10 text-secondary-foreground rounded">
-                                      Unique: 1
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
+                    <td colSpan={10} className="py-4 px-6">
+                      <div>
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Category Breakdown</h4>
+                        <div className="space-y-2">
+                          {relatedCategories.map((category, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-card rounded border border-border">
+                              <span className="text-sm font-medium text-foreground">{category.name}</span>
+                              <div className="flex gap-3 text-xs">
+                                <span className="px-2 py-1 bg-primary/10 text-primary rounded font-medium">
+                                  Total: {category.totalClicks}
+                                </span>
+                                <span className="px-2 py-1 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded font-medium">
+                                  Unique: {category.uniqueClicks}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        
-                        {blogClicks.length > 0 && (
-                          <div>
-                            <h4 className="text-sm font-semibold text-foreground mb-3">Blog Clicks</h4>
-                            <div className="space-y-2">
-                              {blogClicks.map((click, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-2 bg-card rounded border border-border">
-                                  <span className="text-sm text-foreground">{click.result_name}</span>
-                                  <div className="flex gap-3 text-xs">
-                                    <span className="px-2 py-1 bg-primary/10 text-primary rounded">
-                                      Total: {click.click_count}
-                                    </span>
-                                    <span className="px-2 py-1 bg-secondary/10 text-secondary-foreground rounded">
-                                      Unique: 1
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                          ))}
+                        </div>
                       </div>
                     </td>
                   </tr>
