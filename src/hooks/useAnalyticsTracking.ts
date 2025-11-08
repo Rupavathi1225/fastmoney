@@ -77,13 +77,21 @@ export const useAnalyticsTracking = () => {
         .eq('link_id', linkId)
         .maybeSingle();
 
+      const now = new Date().toISOString();
+
       if (existing) {
+        // Calculate time spent since last click (in seconds)
+        const lastClickTime = new Date(existing.last_clicked_at).getTime();
+        const currentTime = new Date().getTime();
+        const additionalTimeSpent = Math.floor((currentTime - lastClickTime) / 1000);
+        
         // Update existing record
         await supabase
           .from('click_analytics')
           .update({
             click_count: existing.click_count + 1,
-            last_clicked_at: new Date().toISOString()
+            last_clicked_at: now,
+            time_spent_seconds: (existing.time_spent_seconds || 0) + additionalTimeSpent
           })
           .eq('id', existing.id);
       } else {
@@ -98,11 +106,35 @@ export const useAnalyticsTracking = () => {
             click_count: 1,
             search_term: searchTerm,
             is_blog_click: isBlogClick,
-            last_clicked_at: new Date().toISOString()
+            first_clicked_at: now,
+            last_clicked_at: now,
+            time_spent_seconds: 0
           });
       }
     } catch (error) {
       console.error('Error tracking click:', error);
+    }
+  };
+
+  const updateTimeSpent = async (linkId: number, timeSpentSeconds: number) => {
+    try {
+      const { data: existing } = await supabase
+        .from('click_analytics')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('link_id', linkId)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('click_analytics')
+          .update({
+            time_spent_seconds: (existing.time_spent_seconds || 0) + timeSpentSeconds
+          })
+          .eq('id', existing.id);
+      }
+    } catch (error) {
+      console.error('Error updating time spent:', error);
     }
   };
 
@@ -174,6 +206,7 @@ export const useAnalyticsTracking = () => {
 
   return {
     trackLinkClick,
+    updateTimeSpent,
     startSession,
     endSession,
     sessionId

@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           click_count: number
           created_at: string
+          first_clicked_at: string | null
           id: string
           is_blog_click: boolean | null
           last_clicked_at: string
@@ -26,10 +27,12 @@ export type Database = {
           result_title: string
           search_term: string | null
           session_id: string
+          time_spent_seconds: number | null
         }
         Insert: {
           click_count?: number
           created_at?: string
+          first_clicked_at?: string | null
           id?: string
           is_blog_click?: boolean | null
           last_clicked_at?: string
@@ -38,10 +41,12 @@ export type Database = {
           result_title: string
           search_term?: string | null
           session_id: string
+          time_spent_seconds?: number | null
         }
         Update: {
           click_count?: number
           created_at?: string
+          first_clicked_at?: string | null
           id?: string
           is_blog_click?: boolean | null
           last_clicked_at?: string
@@ -50,6 +55,34 @@ export type Database = {
           result_title?: string
           search_term?: string | null
           session_id?: string
+          time_spent_seconds?: number | null
+        }
+        Relationships: []
+      }
+      country_links: {
+        Row: {
+          country_code: string
+          created_at: string
+          id: string
+          link: string
+          updated_at: string
+          web_result_id: string
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          id?: string
+          link: string
+          updated_at?: string
+          web_result_id: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          id?: string
+          link?: string
+          updated_at?: string
+          web_result_id?: string
         }
         Relationships: []
       }
@@ -95,6 +128,30 @@ export type Database = {
           session_id?: string
           source?: string | null
           start_time?: string
+        }
+        Relationships: []
+      }
+      worldwide_links: {
+        Row: {
+          created_at: string
+          id: string
+          link: string
+          updated_at: string
+          web_result_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link: string
+          updated_at?: string
+          web_result_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string
+          updated_at?: string
+          web_result_id?: string
         }
         Relationships: []
       }

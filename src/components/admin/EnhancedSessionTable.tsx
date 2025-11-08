@@ -8,6 +8,7 @@ interface ClickDetail {
   click_count: number;
   search_term?: string;
   is_blog_click: boolean;
+  time_spent_seconds?: number;
 }
 
 interface SessionData {
@@ -53,23 +54,35 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
 
   const getRelatedCategories = (clicks: ClickDetail[]) => {
     // Group clicks by result_name (category)
-    const categoryMap = new Map<string, { total: number; uniqueLinks: Set<number> }>();
+    const categoryMap = new Map<string, { total: number; uniqueLinks: Set<number>; timeSpent: number }>();
     
     clicks.forEach(click => {
       const category = click.result_name;
       if (!categoryMap.has(category)) {
-        categoryMap.set(category, { total: 0, uniqueLinks: new Set() });
+        categoryMap.set(category, { total: 0, uniqueLinks: new Set(), timeSpent: 0 });
       }
       const data = categoryMap.get(category)!;
       data.total += click.click_count;
       data.uniqueLinks.add(click.link_id);
+      data.timeSpent += (click.time_spent_seconds || 0);
     });
     
     return Array.from(categoryMap.entries()).map(([name, data]) => ({
       name,
       totalClicks: data.total,
-      uniqueClicks: data.uniqueLinks.size
+      uniqueClicks: data.uniqueLinks.size,
+      timeSpent: data.timeSpent
     }));
+  };
+
+  const formatTimeSpent = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
   };
 
   const getTotalClicks = (clicks: ClickDetail[]) => {
@@ -179,6 +192,9 @@ const EnhancedSessionTable = ({ data }: EnhancedSessionTableProps) => {
                                 </span>
                                 <span className="px-2 py-1 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded font-medium">
                                   Unique: {category.uniqueClicks}
+                                </span>
+                                <span className="px-2 py-1 bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded font-medium">
+                                  Time: {formatTimeSpent(category.timeSpent)}
                                 </span>
                               </div>
                             </div>
