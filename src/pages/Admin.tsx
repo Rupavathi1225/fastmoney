@@ -6,6 +6,7 @@ import LandingContentTab from "@/components/admin/LandingContentTab";
 import SearchButtonsTab from "@/components/admin/SearchButtonsTab";
 import WebResultsTab from "@/components/admin/WebResultsTab";
 import AnalyticsTab from "@/components/admin/AnalyticsTab";
+import PageBuilderTab from "@/components/admin/PageBuilderTab";
 import { ExternalLink, LogOut } from "lucide-react";
 
 const Admin = () => {
@@ -43,7 +44,7 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8 bg-card border border-border">
+          <TabsList className="grid w-full grid-cols-5 mb-8 bg-card border border-border">
             <TabsTrigger 
               value="landing"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -63,6 +64,12 @@ const Admin = () => {
               Web Results
             </TabsTrigger>
             <TabsTrigger 
+              value="pagebuilder"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Page Builder
+            </TabsTrigger>
+            <TabsTrigger 
               value="analytics"
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
@@ -80,6 +87,10 @@ const Admin = () => {
 
           <TabsContent value="results">
             <WebResultsTab />
+          </TabsContent>
+
+          <TabsContent value="pagebuilder">
+            <PageBuilderTab />
           </TabsContent>
 
           <TabsContent value="analytics">

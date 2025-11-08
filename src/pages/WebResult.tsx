@@ -74,7 +74,8 @@ const WebResult = () => {
       console.error("Failed to fetch country-specific link:", error);
     }
 
-    trackLinkClick(lid, name, title);
+    // Track the click with the search term (wrParam)
+    await trackLinkClick(lid, name, title, wrParam, false);
     const fullUrl = ensureProtocol(finalLink);
     window.open(fullUrl, '_blank');
   };
